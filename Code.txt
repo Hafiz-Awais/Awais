@@ -1,0 +1,68 @@
+
+
+Create sequence Seq_Customer
+start with 1
+MINVALUE 1
+MAXVALUE 999
+INCREMENT by 1
+CACHE 20 
+
+
+Create table Customers_HA
+(
+Customer_id Number Primary Key,
+Name varchar2(150) not null,
+Address varchar2(250),
+website varchar2(100),
+credit_limit number(10,2)
+)
+
+Create or Replace trigger Tri_Customer
+Before insert On Customers_HA
+for each row
+begin 
+select Seq_Customer.nextval 
+into :new.customer_id
+from dual;
+End;
+
+Select * from Customers_HA;
+
+select Seq_Customer.currval from dual
+
+
+CREATE TABLE audits_HA (
+      table_name       VARCHAR2(255),
+      transaction_name VARCHAR2(10),
+      by_user          VARCHAR2(30),
+      transaction_date DATE
+);
+
+CREATE OR REPLACE TRIGGER customers_audit_trg
+    AFTER 
+    UPDATE OR DELETE 
+    ON customers_HA
+    FOR EACH ROW    
+DECLARE
+   l_transaction VARCHAR2(10);
+BEGIN
+   -- determine the transaction type
+   l_transaction := CASE  
+         WHEN UPDATING THEN 'UPDATE'
+         WHEN DELETING THEN 'DELETE'
+   END;
+
+   -- insert a row into the audit table   
+   INSERT INTO audits_HA (table_name, transaction_name, by_user, transaction_date)
+   VALUES('CUSTOMERS_HA', l_transaction, USER, SYSDATE);
+END;
+
+
+update customers_ha
+set Name = 'Owais'
+where customer_id = 1
+
+commit
+
+select * from customers_ha
+select * from audits_HA

@@ -1,0 +1,78 @@
+CREATE OR REPLACE PROCEDURE PRC_USER_GET_BY_PROFILE (
+                                        puser_id      IN NUMBER,
+                                        pstatus       IN NUMBER,
+                                        pchecked_by   IN VARCHAR2,
+                                    --PLAST_ACTION VARCHAR2,
+                                        premarks      IN VARCHAR2,
+                                        pcode         OUT   VARCHAR2,
+                                        pdesc         OUT   VARCHAR2,
+                                        pmsg          OUT   VARCHAR2) 
+    
+AS
+v_last_action VARCHAR2(20);
+BEGIN
+    pcode := '-1';
+    pdesc := 'Failure';
+    pmsg  := 'N';
+    SELECT last_action
+      INTO v_last_action
+      FROM users
+     WHERE user_id = puser_id
+       AND ended IS NULL;
+
+    IF pstatus = 1 --APPROVED
+    THEN
+        IF ( v_last_action IN 'CREATE', 'UPDATE' ) 
+        THEN
+            UPDATE users
+               SET status = pstatus,
+                   remarks = premarks,
+                   checked_by = pchecked_by
+             WHERE user_id = puser_id;
+
+        ELSE
+            UPDATE users
+            SET
+                status = pstatus,
+                remarks = premarks,
+                checked_by = pchecked_by,
+                ended = systimestamp
+            WHERE
+                user_id = puser_id;
+
+        END IF;
+    ELSIF ( pstatus = 2 ) --REJECT
+     THEN
+        IF ( v_last_action IN 'CREATE', 'UPDATE' ) 
+        THEN
+            UPDATE users
+               SET status = pstatus,
+                   remarks = premarks,
+                   checked_by = pchecked_by
+             WHERE user_id = puser_id;
+
+        ELSE
+            UPDATE users
+            SET
+                status = pstatus,
+                remarks = premarks,
+                checked_by = pchecked_by,
+                ended = systimestamp
+            WHERE
+                user_id = puser_id;
+
+        END IF;
+
+    END IF;
+
+    pcode := '00';
+    pdesc := 'Success';
+    pmsg := 'Y';
+EXCEPTION
+    WHEN OTHERS THEN
+        pcode := '99';
+        pdesc := sqlcode
+                 || '-'
+                 || sqlerrm;
+        pmsg := 'N';
+END approved;

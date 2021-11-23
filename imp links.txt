@@ -1,0 +1,14 @@
+--------gamil or outlook mails
+Email: hafiz.awais@aksa-sds.com
+Password: hafiz.awais
+
+
+-------For Attendance 
+http://ak-ep-01/ep/clients/login.php
+Domain username and password
+
+
+--------helpdesk
+http://servicedesk.aksa.com.pk/helpdesk/tickets.php
+Domain username and password
+

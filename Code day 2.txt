@@ -1,0 +1,55 @@
+Create or replace trigger statement_level_trg_customers
+before update of credit_limit
+on customers_ha
+declare
+l_day number;
+begin
+    l_day := Extract(day from sysdate);
+    
+    if l_day between 5 and 8 then
+    raise_application_error(-20100,'cannot update customer credit limit between 5 to 8');
+    End if;
+End;
+
+select * from customers_ha;
+
+update customers_ha
+set credit_limit = 500
+where customer_id = 1
+
+
+
+select * from audits_ha
+
+CREATE OR REPLACE TRIGGER ROW_LVL_TRG_CUSTOMERS
+    BEFORE UPDATE OR DELETE OF CREDIT_LIMIT
+    ON CUSTOMERS_HA
+    REFERENCING NEW AS NEW OLD AS OLD
+    FOR EACH ROW
+--DECLARE
+ --   l_tran varchar2(100);
+BEGIN
+    IF updating 
+    THEN 
+        IF 
+            :NEW.CREDIT_LIMIT >= 2 * :OLD.CREDIT_LIMIT 
+        THEN
+            RAISE_APPLICATION_ERROR(-20100,'CANNOT UPDATE RECORDS ');
+        ELSE 
+            insert into audits_ha VALUES('CUSTOMERS_HA','UPDATING',USER,SYSDATE);
+        END IF;
+    ELSE
+        insert into audits_ha VALUES('CUSTOMERS_HA','DELETING',USER,SYSDATE);  
+    END IF;
+    
+END;
+
+INSERT INTO CUSTOMERS_HA (NAME,ADDRESS,WEBSITE,CREDIT_LIMIT)
+VALUES ('ALI','Sattlite Town Rawalpindi','http://www.TCS.com',3000)
+
+SELECT * FROM CUSTOMERS_HA
+
+SELECT * FROM AUDITS_HA
+
+DELETE FROM CUSTOMERS_HA 
+WHERE CUSTOMER_ID = 4
